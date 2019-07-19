@@ -2,7 +2,6 @@ package henry232323.parkourleaderboard;
 
 import com.destroystokyo.paper.MaterialSetTag;
 import javafx.util.Pair;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Switch;
@@ -19,7 +18,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
-import static henry232323.util.io.save;
+import static henry232323.parkourleaderboard.io.save;
 
 class ParkourListener implements Listener {
     private ParkourLeaderboard plugin;
