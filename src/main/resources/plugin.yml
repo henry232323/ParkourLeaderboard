@@ -18,4 +18,4 @@ commands:
      description: View the leaderboard for a parkour
      aliases: [pleaderboard]
      permission: parkour.leaderboard
-     usage: "§cSyntax error! Usage: /parkour {name}"
+     usage: "§cSyntax error! Usage: /parkour <name>"
