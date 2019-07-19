@@ -40,3 +40,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+server/
+.idea/
+target/

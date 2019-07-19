@@ -1,0 +1,21 @@
+name: ParkourLeaderboard
+version: ${project.version}
+main: henry232323.parkourleaderboard.ParkourLeaderboard
+authors: [henry232323]
+description: A plugin for tracking leaderboards on your parkour
+
+permissions:
+  parkour.*:
+    description: All permissions for parkour
+    children:
+      parkour.leaderboard: true
+  parkour.leaderboard:
+    description: Gives access to viewing the leaderboard
+    default: true
+
+commands:
+   parkour:
+     description: View the leaderboard for a parkour
+     aliases: [pleaderboard]
+     permission: parkour.leaderboard
+     usage: "§cSyntax error! Usage: /parkour {name}"
