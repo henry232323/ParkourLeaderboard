@@ -1,0 +1,11 @@
+parkours:
+  example_parkour:
+    on_win: eco give %s 500
+    start_position: "0, 64, 0"
+    end_position: "88, 90, 73"
+    checkpoints: [
+      "10, 68, 10",
+      "15, 75, 19"
+    ]
+    start_world: world
+    end_world: world
