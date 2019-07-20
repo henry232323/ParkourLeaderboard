@@ -141,7 +141,9 @@ public class Parkour implements Serializable {
         }
 
         player.sendMessage(message);
-        plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), String.format(successCommand, player.getName()));
+        for (String part : successCommand.split("\n")) {
+            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), String.format(part, player.getName()));
+        }
 
         if (leaderboard.get(0) == cscore) {
             String newRecordAnnounce = plugin.config.getString("new_record_announce");

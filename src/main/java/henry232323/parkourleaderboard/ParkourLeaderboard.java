@@ -46,6 +46,16 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
         parkours = new ArrayList<>();
         parkourDir = new File(getDataFolder().getAbsoluteFile(), "leaderboards");
 
+        File datafolder = getDataFolder();
+        if (!datafolder.exists()) {
+            log.info(String.format("Data directory %s for plugin %s does not exist, creating new directory", parkourDir.getName(), getDescription().getName()));
+            getConfig().options().copyDefaults(true);
+            saveConfig();
+            if (!datafolder.mkdir()) {
+                log.severe(String.format("Failed to create directory %s", datafolder.getName()));
+            }
+        }
+
         if (!parkourDir.exists()) {
             log.info(String.format("Data directory %s for plugin %s does not exist, creating new directory", parkourDir.getName(), getDescription().getName()));
             if (!parkourDir.mkdir()) {
@@ -131,7 +141,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                 cpFormat = "Checkpoint\n#%2$s";
             }
 
-            int i = 0;
+            int i = 1;
             for (String item : stringCheckpoints) {
                 String[] itemPos = item.split(" *, *");
                 String world;
@@ -208,6 +218,26 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
             } catch (Exception e) {
                 return false;
             }
+        } else if (command.getName().equalsIgnoreCase("preload")) {
+            for (Parkour parkour : parkours) {
+                for (Hologram hologram : parkour.getHolograms()) {
+                    hologram.delete();
+                }
+
+                for (Location checkpoint : parkour.getCheckpoints()) {
+                    checkpoint.getBlock().removeMetadata("parkour", this);
+                }
+
+                parkour.getStart().getBlock().removeMetadata("parkour", this);
+                parkour.getEnd().getBlock().removeMetadata("parkour", this);
+            }
+            parkours = new ArrayList<>();
+
+            reloadConfig();
+            config = getConfig();
+            loadParkours();
+            sender.sendMessage("Reloaded config");
+            return true;
         }
         return false;
     }
