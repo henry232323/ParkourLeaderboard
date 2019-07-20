@@ -10,9 +10,13 @@ permissions:
     description: All permissions for parkour
     children:
       parkour.leaderboard: true
+      parkour.reload: true
   parkour.leaderboard:
     description: Gives access to viewing the leaderboard
     default: true
+  parkour.reload:
+      description: Gives access to reloading the plugin
+      default: op
 
 commands:
    parkour:
@@ -20,3 +24,7 @@ commands:
      aliases: [pleaderboard]
      permission: parkour.leaderboard
      usage: "§cSyntax error! Usage: /parkour <name>"
+   preload:
+     description: Reload the parkour plugin
+     permission: parkour.reload
+     usage: "§cSyntax error! Usage: /preload"
