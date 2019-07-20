@@ -9,3 +9,16 @@ parkours:
     ]
     start_world: world
     end_world: world
+    name_error: "§c[Parkour] That is not a valid parkour!"
+    checkpoint_text: "§6Checkpoint\n#%2$s"
+    start_text: "§6%1$s\n%2$s Checkpoints"
+    end_text: "§c%1$s: Finish"
+leaderboard_header: "§l§9Leaderboard for %1$s"
+leaderboard_item: "§a%1$s. %2$s - %3$ss"
+start_message: "§9[Parkour] Starting run."
+checkpoint_message: "§9[Parkour] Checkpoint: #%1$ss"
+end_message: "§a[Parkour] Your time was %1$ss."
+end_with_best: "§a[Parkour] Your time was %1$ss. Your best time is %2$ss."
+end_with_record: "§a[Parkour] Your time was %1$ss. Your best time is %2$ss. New record!"
+new_record_announce: "§1[Parkour] %1$s §9has set a new record of %2$ss for parkour %3$s!"
+run_complete_announce: "§1[Parkour] %1$s §9has has completed %3$s in %2$ss!"

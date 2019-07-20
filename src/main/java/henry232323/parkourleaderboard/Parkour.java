@@ -1,6 +1,7 @@
 package henry232323.parkourleaderboard;
 
 
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import javafx.util.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -25,6 +26,7 @@ public class Parkour implements Serializable {
 
     private ArrayList<Pair<UUID, Float>> leaderboard;
     private ArrayList<Location> checkpoints;
+    private ArrayList<Hologram> holograms;
 
     public Parkour(ParkourLeaderboard plugin, Location start, Location end, ArrayList<Location> checkpoints, String name, String success) {
         this.start = start;
@@ -35,6 +37,7 @@ public class Parkour implements Serializable {
         this.checkpoints = checkpoints;
 
         current = new HashMap<>();
+        holograms = new ArrayList<>();
         successCommand = success;
 
         leaderboard = new ArrayList<>();
@@ -85,7 +88,12 @@ public class Parkour implements Serializable {
     public void start(Player player) {
         long stime = System.currentTimeMillis();
         current.put(player, stime);
-        player.sendMessage(ChatColor.BLUE + "[Parkour] Starting run.");
+        String startMessage = plugin.config.getString("start_message");
+        if (startMessage == null) {
+            startMessage = ChatColor.BLUE + "[Parkour] Starting run.";
+        }
+
+        player.sendMessage(startMessage);
     }
 
     public void end(Player player) {
@@ -109,21 +117,46 @@ public class Parkour implements Serializable {
             }
         }
 
-        String message = String.format(ChatColor.GREEN + "[Parkour] Your time was %ss. ", ftime);
-        if (besttime != -1) {
-            message += String.format("Your best time is %ss. ", besttime);
+        String endMessage = plugin.config.getString("end_message");
+        if (endMessage == null) {
+            endMessage = ChatColor.GREEN + "[Parkour] Your time was %1$ss.";
         }
-        if (besttime == ftime) {
-            message += "New record!";
+
+        String endWithBest = plugin.config.getString("end_with_best");
+        if (endWithBest == null) {
+            endWithBest = ChatColor.GREEN + "[Parkour] Your time was %1$ss. Your best time is %2$ss.";
+        }
+
+        String endWithRecord = plugin.config.getString("end_with_record");
+        if (endWithRecord == null) {
+            endWithRecord = ChatColor.GREEN + "[Parkour] Your time was %1$ss. Your best time is %2$ss. New record!";
+        }
+        String message;
+        if (besttime != -1) {
+            message = String.format(endWithBest, ftime, besttime);
+        } else if (besttime == ftime) {
+            message = String.format(endWithRecord, ftime, besttime);
+        } else {
+            message = String.format(endMessage, ftime);
         }
 
         player.sendMessage(message);
         plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), String.format(successCommand, player.getName()));
 
         if (leaderboard.get(0) == cscore) {
-            plugin.getServer().broadcastMessage(String.format("%s[Parkour] %s %shas set a new record of %ss for parkour %s!", ChatColor.DARK_BLUE, player.getDisplayName(), ChatColor.BLUE, ftime, name));
+            String newRecordAnnounce = plugin.config.getString("new_record_announce");
+            if (newRecordAnnounce == null) {
+                newRecordAnnounce = ChatColor.DARK_BLUE + "[Parkour] %1$s §9has set a new record of %3$ss for parkour %2$s!";
+            }
+
+            plugin.getServer().broadcastMessage(String.format(newRecordAnnounce, player.getDisplayName(), ftime, name));
         } else {
-            plugin.getServer().broadcastMessage(String.format("%s[Parkour] %s %shas has completed %s in %ss!", ChatColor.DARK_BLUE, player.getDisplayName(), ChatColor.BLUE, name, ftime));
+            String runCompleteAnnounce = plugin.config.getString("run_complete_announce");
+            if (runCompleteAnnounce == null) {
+                runCompleteAnnounce = "§1[Parkour] %1$s §9has has completed %3$s in %2$ss!";
+            }
+
+            plugin.getServer().broadcastMessage(String.format(runCompleteAnnounce, player.getDisplayName(), ftime, name));
         }
 
         String uuid = player.getUniqueId().toString();
@@ -148,7 +181,12 @@ public class Parkour implements Serializable {
         long stime = current.get(player);
 
         float ftime = Float.parseFloat(new DecimalFormat("###.###").format(etime - stime)) / 1000;
-        player.sendMessage(String.format("%s[Parkour] Checkpoint: %ss", ChatColor.BLUE, ftime));
+
+        String checkpointMessage = plugin.config.getString("checkpoint_message");
+        if (checkpointMessage == null) {
+            checkpointMessage = "§9[Parkour] Checkpoint: %1$ss";
+        }
+        player.sendMessage(String.format(checkpointMessage, ftime));
 
     }
 
@@ -168,11 +206,11 @@ public class Parkour implements Serializable {
         return current.containsKey(player);
     }
 
-    public String toString() {
-        return String.format("Parkour(name=%s, command=%s, start=%s,%s,%s, end=%s,%s,%s)", name, successCommand);
-    }
-
     public ArrayList<Location> getCheckpoints() {
         return checkpoints;
+    }
+
+    public ArrayList<Hologram> getHolograms() {
+        return holograms;
     }
 }
