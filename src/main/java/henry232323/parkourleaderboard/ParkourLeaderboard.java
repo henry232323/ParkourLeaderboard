@@ -1,8 +1,8 @@
 package henry232323.parkourleaderboard;
 
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import javafx.util.Pair;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,6 +10,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,11 +25,7 @@ import java.util.logging.Logger;
 /*
 TODO:
     Leaderboard using side scoreboard
-
-    Extras:
-    + Ability to add a Text hologram above starting pressure plate with name of parkour
-    and other info
- */
+*/
 
 public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
     private static final Logger log = Logger.getLogger("Minecraft");
@@ -37,8 +34,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
     ParkourListener parkourListener;
     File parkourDir;
 
-    Economy econ;
-    Permission perms;
+    FileConfiguration config;
 
     @Override
     public void onDisable() {
@@ -57,12 +53,14 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
             }
         }
 
+        config = getConfig();
         try {
             loadParkours();
         } catch (Exception e) {
             e.printStackTrace();
             getConfig().options().copyDefaults(true);
             saveConfig();
+            config = getConfig();
             loadParkours();
         }
 
@@ -71,8 +69,8 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
     }
 
     public void loadParkours() {
-        for (String key : getConfig().getConfigurationSection("parkours").getKeys(false)) {
-            ConfigurationSection parkourConfig = getConfig().getConfigurationSection("parkours").getConfigurationSection(key);
+        for (String key : config.getConfigurationSection("parkours").getKeys(false)) {
+            ConfigurationSection parkourConfig = config.getConfigurationSection("parkours").getConfigurationSection(key);
             String startWorld = parkourConfig.getString("start_world");
             String endWorld = parkourConfig.getString("end_world");
 
@@ -101,7 +99,40 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
             parkour.getStart().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
             parkour.getEnd().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
 
-            for (String item : parkourConfig.getStringList("checkpoints")) {
+            List<String> stringCheckpoints = parkourConfig.getStringList("checkpoints");
+            if (stringCheckpoints == null) {
+                stringCheckpoints = new ArrayList<>();
+            }
+
+            String startFormat = parkourConfig.getString("start_text");
+            if (startFormat == null) {
+                startFormat = "%1$s\n%2$s Checkpoints";
+            }
+
+            Hologram sHologram = HologramsAPI.createHologram(this, start.clone().add(0.5, 2, 0.5));
+            for (String line : String.format(startFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                sHologram.appendTextLine(line);
+            }
+            parkour.getHolograms().add(sHologram);
+
+            String endFormat = parkourConfig.getString("end_text");
+            if (endFormat == null) {
+                endFormat = "%1$s: Finish";
+            }
+
+            Hologram eHologram = HologramsAPI.createHologram(this, end.clone().add(0.5, 2, 0.5));
+            for (String line : String.format(endFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                eHologram.appendTextLine(line);
+            }
+            parkour.getHolograms().add(eHologram);
+
+            String cpFormat = parkourConfig.getString("checkpoint_text");
+            if (cpFormat == null) {
+                cpFormat = "Checkpoint\n#%2$s";
+            }
+
+            int i = 0;
+            for (String item : stringCheckpoints) {
                 String[] itemPos = item.split(" *, *");
                 String world;
                 if (itemPos.length == 4) {
@@ -119,13 +150,22 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
                 checkpoints.add(itemLocation);
                 itemLocation.getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
+                Hologram hologram = HologramsAPI.createHologram(this, itemLocation.clone().add(0.5, 2, 0.5));
+
+                for (String line : String.format(cpFormat, parkour.getName(), i, stringCheckpoints.size()).split("\n")) {
+                    hologram.appendTextLine(line);
+                }
+                parkour.getHolograms().add(hologram);
+
+                i++;
             }
 
             parkours.add(parkour);
         }
     }
 
-    public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("parkour")) {
             try {
                 String name = args[0];
@@ -140,16 +180,29 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                         parkour = pk;
                     }
                 }
+                String errorMessage = config.getString("name_error");
+                if (errorMessage == null) {
+                    errorMessage = ChatColor.RED + "[Parkour] That is not a valid parkour!";
+                }
+
                 if (parkour == null) {
-                    sender.sendMessage(ChatColor.RED + "[Parkour] That is not a valid parkour!");
+                    sender.sendMessage(errorMessage);
                     return true;
                 }
 
-                String leaderBoard = "";
-                sender.sendMessage(String.format("%s%sLeaderboard for %s", ChatColor.BOLD, ChatColor.BLUE, name, leaderBoard));
+                String lbHeaderFormat = config.getString("leaderboard_header");
+                if (lbHeaderFormat == null) {
+                    lbHeaderFormat = "§l§9Leaderboard for %1$s";
+                }
+
+                String lbListItemFormat = config.getString("leaderboard_header");
+                if (lbListItemFormat == null) {
+                    lbListItemFormat = "§a%1$s. %2$s - %3$ss";
+                }
+                sender.sendMessage(String.format(lbHeaderFormat, parkour.getName()));
                 for (int i = 0; i < 10; i++) {
                     Pair<UUID, Float> data = parkour.getLeaderboard().get(i);
-                    sender.sendMessage(String.format("%s%s. %s - %ss", ChatColor.GREEN, i+1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
+                    sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
                 }
                 return true;
             } catch (Exception e) {

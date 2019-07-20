@@ -61,13 +61,11 @@ class ParkourListener implements Listener {
         if (event.getClickedBlock() == null) {
             return;
         }
-
         if (event.getAction().equals(Action.PHYSICAL)) {
             if (pressurePlates.isTagged(event.getClickedBlock())) {
                 Block block = event.getClickedBlock();
                 if (block.hasMetadata("parkour")) {
                     List<MetadataValue> mdv = block.getMetadata("parkour");
-
                     for (MetadataValue val : mdv) {
                         if (val.getOwningPlugin() == plugin) {
                             Parkour parkour = (Parkour) val.value();
