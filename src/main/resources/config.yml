@@ -16,7 +16,7 @@ parkours:
 leaderboard_header: "§l§9Leaderboard for %1$s"
 leaderboard_item: "§a%1$s. %2$s - %3$ss"
 start_message: "§9[Parkour] Starting run."
-checkpoint_message: "§9[Parkour] Checkpoint: #%1$ss"
+checkpoint_message: "§9[Parkour] Checkpoint: %1$ss"
 end_message: "§a[Parkour] Your time was %1$ss."
 end_with_best: "§a[Parkour] Your time was %1$ss. Your best time is %2$ss."
 end_with_record: "§a[Parkour] Your time was %1$ss. Your best time is %2$ss. New record!"

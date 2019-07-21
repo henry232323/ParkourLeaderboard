@@ -48,12 +48,12 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
         File datafolder = getDataFolder();
         if (!datafolder.exists()) {
-            log.info(String.format("Data directory %s for plugin %s does not exist, creating new directory", parkourDir.getName(), getDescription().getName()));
-            getConfig().options().copyDefaults(true);
-            saveConfig();
+            log.info(String.format("Data directory %s for plugin %s does not exist, creating new directory", datafolder.getName(), getDescription().getName()));
             if (!datafolder.mkdir()) {
                 log.severe(String.format("Failed to create directory %s", datafolder.getName()));
             }
+            getConfig().options().copyDefaults(true);
+            saveConfig();
         }
 
         if (!parkourDir.exists()) {
@@ -64,15 +64,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
         }
 
         config = getConfig();
-        try {
-            loadParkours();
-        } catch (Exception e) {
-            e.printStackTrace();
-            getConfig().options().copyDefaults(true);
-            saveConfig();
-            config = getConfig();
-            loadParkours();
-        }
+        loadParkours();
 
         parkourListener = new ParkourListener(this);
         getServer().getPluginManager().registerEvents(parkourListener, this);
@@ -80,97 +72,103 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
     public void loadParkours() {
         for (String key : config.getConfigurationSection("parkours").getKeys(false)) {
-            ConfigurationSection parkourConfig = config.getConfigurationSection("parkours").getConfigurationSection(key);
-            String startWorld = parkourConfig.getString("start_world");
-            String endWorld = parkourConfig.getString("end_world");
+            try {
+                ConfigurationSection parkourConfig = config.getConfigurationSection("parkours").getConfigurationSection(key);
+                String startWorld = parkourConfig.getString("start_world");
+                String endWorld = parkourConfig.getString("end_world");
 
-            World sworld = getServer().getWorld(startWorld);
-            World eworld = getServer().getWorld(endWorld);
+                World sworld = getServer().getWorld(startWorld);
+                World eworld = getServer().getWorld(endWorld);
 
-            String[] startPos = parkourConfig.getString("start_position").split(" *, *");
-            String[] endPos = parkourConfig.getString("end_position").split(" *, *");
+                String[] startPos = parkourConfig.getString("start_position").split(" *, *");
+                String[] endPos = parkourConfig.getString("end_position").split(" *, *");
 
-            Location start = new Location(
-                    sworld,
-                    Integer.parseInt(startPos[0]),
-                    Integer.parseInt(startPos[1]),
-                    Integer.parseInt(startPos[2])
-            );
-            Location end = new Location(
-                    eworld,
-                    Integer.parseInt(endPos[0]),
-                    Integer.parseInt(endPos[1]),
-                    Integer.parseInt(endPos[2])
-            );
-            String success = parkourConfig.getString("on_win");
-            ArrayList<Location> checkpoints = new ArrayList<>();
-
-            Parkour parkour = new Parkour(this, start, end, checkpoints, key, success);
-            parkour.getStart().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
-            parkour.getEnd().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
-
-            List<String> stringCheckpoints = parkourConfig.getStringList("checkpoints");
-            if (stringCheckpoints == null) {
-                stringCheckpoints = new ArrayList<>();
-            }
-
-            String startFormat = parkourConfig.getString("start_text");
-            if (startFormat == null) {
-                startFormat = "%1$s\n%2$s Checkpoints";
-            }
-
-            Hologram sHologram = HologramsAPI.createHologram(this, start.clone().add(0.5, 2, 0.5));
-            for (String line : String.format(startFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
-                sHologram.appendTextLine(line);
-            }
-            parkour.getHolograms().add(sHologram);
-
-            String endFormat = parkourConfig.getString("end_text");
-            if (endFormat == null) {
-                endFormat = "%1$s: Finish";
-            }
-
-            Hologram eHologram = HologramsAPI.createHologram(this, end.clone().add(0.5, 2, 0.5));
-            for (String line : String.format(endFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
-                eHologram.appendTextLine(line);
-            }
-            parkour.getHolograms().add(eHologram);
-
-            String cpFormat = parkourConfig.getString("checkpoint_text");
-            if (cpFormat == null) {
-                cpFormat = "Checkpoint\n#%2$s";
-            }
-
-            int i = 1;
-            for (String item : stringCheckpoints) {
-                String[] itemPos = item.split(" *, *");
-                String world;
-                if (itemPos.length == 4) {
-                    world = itemPos[3];
-                } else {
-                    world = sworld.getName();
-                }
-
-                Location itemLocation = new Location(
-                        sworld = getServer().getWorld(world),
-                        Integer.parseInt(itemPos[0]),
-                        Integer.parseInt(itemPos[1]),
-                        Integer.parseInt(itemPos[2])
+                Location start = new Location(
+                        sworld,
+                        Integer.parseInt(startPos[0]),
+                        Integer.parseInt(startPos[1]),
+                        Integer.parseInt(startPos[2])
                 );
+                Location end = new Location(
+                        eworld,
+                        Integer.parseInt(endPos[0]),
+                        Integer.parseInt(endPos[1]),
+                        Integer.parseInt(endPos[2])
+                );
+                String success = parkourConfig.getString("on_win");
+                ArrayList<Location> checkpoints = new ArrayList<>();
 
-                checkpoints.add(itemLocation);
-                itemLocation.getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
-                Hologram hologram = HologramsAPI.createHologram(this, itemLocation.clone().add(0.5, 2, 0.5));
+                Parkour parkour = new Parkour(this, start, end, checkpoints, key, success);
 
-                for (String line : String.format(cpFormat, parkour.getName(), i, stringCheckpoints.size()).split("\n")) {
-                    hologram.appendTextLine(line);
+                parkour.getStart().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
+                parkour.getEnd().getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
+
+                List<String> stringCheckpoints = parkourConfig.getStringList("checkpoints");
+                if (stringCheckpoints == null) {
+                    stringCheckpoints = new ArrayList<>();
                 }
-                parkour.getHolograms().add(hologram);
 
-                i++;
+                String startFormat = parkourConfig.getString("start_text");
+                if (startFormat == null) {
+                    startFormat = "%1$s\n%2$s Checkpoints";
+                }
+
+                Hologram sHologram = HologramsAPI.createHologram(this, start.clone().add(0.5, 2, 0.5));
+                for (String line : String.format(startFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                    sHologram.appendTextLine(line);
+                }
+                parkour.getHolograms().add(sHologram);
+
+                String endFormat = parkourConfig.getString("end_text");
+                if (endFormat == null) {
+                    endFormat = "%1$s: Finish";
+                }
+
+                Hologram eHologram = HologramsAPI.createHologram(this, end.clone().add(0.5, 2, 0.5));
+                for (String line : String.format(endFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                    eHologram.appendTextLine(line);
+                }
+                parkour.getHolograms().add(eHologram);
+
+                String cpFormat = parkourConfig.getString("checkpoint_text");
+                if (cpFormat == null) {
+                    cpFormat = "Checkpoint\n#%2$s";
+                }
+
+                int i = 1;
+                for (String item : stringCheckpoints) {
+                    String[] itemPos = item.split(" *, *");
+                    String world;
+                    if (itemPos.length == 4) {
+                        world = itemPos[3];
+                    } else {
+                        world = sworld.getName();
+                    }
+
+                    Location itemLocation = new Location(
+                            sworld = getServer().getWorld(world),
+                            Integer.parseInt(itemPos[0]),
+                            Integer.parseInt(itemPos[1]),
+                            Integer.parseInt(itemPos[2])
+                    );
+
+                    checkpoints.add(itemLocation);
+                    itemLocation.getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
+                    Hologram hologram = HologramsAPI.createHologram(this, itemLocation.clone().add(0.5, 2, 0.5));
+
+                    for (String line : String.format(cpFormat, parkour.getName(), i, stringCheckpoints.size()).split("\n")) {
+                        hologram.appendTextLine(line);
+                    }
+                    parkour.getHolograms().add(hologram);
+
+                    i++;
+                }
+
+                parkours.add(parkour);
+            } catch (Exception e) {
+                log.severe("Failed to load parkour: " + key);
+                e.printStackTrace();
             }
-
-            parkours.add(parkour);
         }
     }
 
