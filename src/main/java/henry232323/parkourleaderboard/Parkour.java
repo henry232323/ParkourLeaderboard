@@ -2,7 +2,6 @@ package henry232323.parkourleaderboard;
 
 
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import javafx.util.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -132,10 +131,10 @@ public class Parkour implements Serializable {
             endWithRecord = ChatColor.GREEN + "[Parkour] Your time was %1$ss. Your best time is %2$ss. New record!";
         }
         String message;
-        if (besttime != -1) {
-            message = String.format(endWithBest, ftime, besttime);
-        } else if (besttime == ftime) {
+        if (besttime == ftime) {
             message = String.format(endWithRecord, ftime, besttime);
+        } else if (besttime != -1) {
+            message = String.format(endWithBest, ftime, besttime);
         } else {
             message = String.format(endMessage, ftime);
         }
@@ -151,14 +150,14 @@ public class Parkour implements Serializable {
                 newRecordAnnounce = ChatColor.DARK_BLUE + "[Parkour] %1$s §9has set a new record of %3$ss for parkour %2$s!";
             }
 
-            plugin.getServer().broadcastMessage(String.format(newRecordAnnounce, player.getDisplayName(), ftime, name));
+            plugin.getServer().broadcastMessage(String.format(newRecordAnnounce, player.getName(), ftime, name));
         } else {
             String runCompleteAnnounce = plugin.config.getString("run_complete_announce");
             if (runCompleteAnnounce == null) {
                 runCompleteAnnounce = "§1[Parkour] %1$s §9has has completed %3$s in %2$ss!";
             }
 
-            plugin.getServer().broadcastMessage(String.format(runCompleteAnnounce, player.getDisplayName(), ftime, name));
+            plugin.getServer().broadcastMessage(String.format(runCompleteAnnounce, player.getName(), ftime, name));
         }
 
         String uuid = player.getUniqueId().toString();

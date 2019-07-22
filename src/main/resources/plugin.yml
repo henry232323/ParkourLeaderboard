@@ -2,7 +2,7 @@ name: ParkourLeaderboard
 version: ${project.version}
 main: henry232323.parkourleaderboard.ParkourLeaderboard
 authors: [henry232323]
-depend: [HolographicDisplays]
+softdepend: [HolographicDisplays]
 description: A plugin for tracking leaderboards on your parkour
 
 permissions:
