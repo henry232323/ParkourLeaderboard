@@ -2,7 +2,7 @@ package henry232323.parkourleaderboard;
 
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
-import javafx.util.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -28,11 +28,12 @@ TODO:
 */
 
 public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
-    private static final Logger log = Logger.getLogger("Minecraft");
+    private static Logger log;
 
     public ArrayList<Parkour> parkours;
     ParkourListener parkourListener;
     File parkourDir;
+    boolean hologramsEnabled = true;
 
     FileConfiguration config;
 
@@ -43,6 +44,13 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
     @Override
     public void onEnable() {
+        log = getLogger();
+
+        if (!Bukkit.getPluginManager().isPluginEnabled("HolographicDisplays")) {
+            log.info("Cannot find plugin HolographicDisplays, disabling holograms");
+            hologramsEnabled = false;
+        }
+
         parkours = new ArrayList<>();
         parkourDir = new File(getDataFolder().getAbsoluteFile(), "leaderboards");
 
@@ -113,22 +121,25 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                     startFormat = "%1$s\n%2$s Checkpoints";
                 }
 
-                Hologram sHologram = HologramsAPI.createHologram(this, start.clone().add(0.5, 2, 0.5));
-                for (String line : String.format(startFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
-                    sHologram.appendTextLine(line);
-                }
-                parkour.getHolograms().add(sHologram);
 
-                String endFormat = parkourConfig.getString("end_text");
-                if (endFormat == null) {
-                    endFormat = "%1$s: Finish";
-                }
+                if (hologramsEnabled) {
+                    Hologram sHologram = HologramsAPI.createHologram(this, start.clone().add(0.5, 2, 0.5));
+                    for (String line : String.format(startFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                        sHologram.appendTextLine(line);
+                    }
+                    parkour.getHolograms().add(sHologram);
 
-                Hologram eHologram = HologramsAPI.createHologram(this, end.clone().add(0.5, 2, 0.5));
-                for (String line : String.format(endFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
-                    eHologram.appendTextLine(line);
+                    String endFormat = parkourConfig.getString("end_text");
+                    if (endFormat == null) {
+                        endFormat = "%1$s: Finish";
+                    }
+
+                    Hologram eHologram = HologramsAPI.createHologram(this, end.clone().add(0.5, 2, 0.5));
+                    for (String line : String.format(endFormat, parkour.getName(), stringCheckpoints.size()).split("\n")) {
+                        eHologram.appendTextLine(line);
+                    }
+                    parkour.getHolograms().add(eHologram);
                 }
-                parkour.getHolograms().add(eHologram);
 
                 String cpFormat = parkourConfig.getString("checkpoint_text");
                 if (cpFormat == null) {
@@ -154,13 +165,14 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
                     checkpoints.add(itemLocation);
                     itemLocation.getBlock().setMetadata("parkour", new FixedMetadataValue(this, parkour));
-                    Hologram hologram = HologramsAPI.createHologram(this, itemLocation.clone().add(0.5, 2, 0.5));
+                    if (hologramsEnabled) {
+                        Hologram hologram = HologramsAPI.createHologram(this, itemLocation.clone().add(0.5, 2, 0.5));
 
-                    for (String line : String.format(cpFormat, parkour.getName(), i, stringCheckpoints.size()).split("\n")) {
-                        hologram.appendTextLine(line);
+                        for (String line : String.format(cpFormat, parkour.getName(), i, stringCheckpoints.size()).split("\n")) {
+                            hologram.appendTextLine(line);
+                        }
+                        parkour.getHolograms().add(hologram);
                     }
-                    parkour.getHolograms().add(hologram);
-
                     i++;
                 }
 
@@ -203,7 +215,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                     lbHeaderFormat = "§l§9Leaderboard for %1$s";
                 }
 
-                String lbListItemFormat = config.getString("leaderboard_header");
+                String lbListItemFormat = config.getString("leaderboard_item");
                 if (lbListItemFormat == null) {
                     lbListItemFormat = "§a%1$s. %2$s - %3$ss";
                 }
