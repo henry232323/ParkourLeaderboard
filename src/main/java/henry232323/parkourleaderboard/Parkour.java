@@ -170,11 +170,22 @@ public class Parkour implements Serializable {
             times.add(String.valueOf(ftime));
             cs.set(uuid, times);
 
+            for (int i = 10; i < leaderboard.size(); i++) {
+                Pair<UUID, Float> item = leaderboard.get(i);
+                String iuuid = item.getKey().toString();
+                List<String> itimes = cs.getStringList(iuuid);
+                String time = item.getValue().toString();
+                if (itimes.indexOf(time) != -1) {
+                    itimes.remove(time);
+                }
+
+                cs.set(iuuid, itimes);
+            }
+
             leaderboardConf.save(new File(plugin.getDataFolder().getAbsoluteFile(), "leaderboards" + File.separator + name + ".yml"));
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public void checkPoint(Player player, Block block) {
