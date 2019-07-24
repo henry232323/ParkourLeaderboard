@@ -9,10 +9,10 @@ parkours:
     ]
     start_world: world
     end_world: world
-    name_error: "§c[Parkour] That is not a valid parkour!"
     checkpoint_text: "§6Checkpoint\n#%2$s"
     start_text: "§6%1$s\n%2$s Checkpoints"
     end_text: "§c%1$s: Finish"
+name_error: "§c[Parkour] That is not a valid parkour!"
 leaderboard_header: "§l§9Leaderboard for %1$s"
 leaderboard_item: "§a%1$s. %2$s - %3$ss"
 start_message: "§9[Parkour] Starting run."
