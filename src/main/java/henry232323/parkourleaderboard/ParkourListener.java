@@ -4,21 +4,16 @@ import com.destroystokyo.paper.MaterialSetTag;
 import javafx.util.Pair;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.type.Switch;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.MetadataValue;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-
-import static henry232323.parkourleaderboard.io.save;
 
 class ParkourListener implements Listener {
     private ParkourLeaderboard plugin;
@@ -31,19 +26,6 @@ class ParkourListener implements Listener {
         this.plugin = plugin;
         pending = new HashMap<>();
         pendingEnd = new HashMap<>();
-    }
-
-    @EventHandler
-    public void onBlockDestroyed(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        if (!(block.getBlockData() instanceof Switch)) {
-            return;
-        }
-
-        if (block.hasMetadata("parkour")) {
-            block.removeMetadata("parkour", plugin);
-            save(plugin.parkours, new File(plugin.getDataFolder(), "parkour.dat"));
-        }
     }
 
     @EventHandler
