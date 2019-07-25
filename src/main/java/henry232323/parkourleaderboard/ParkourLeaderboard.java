@@ -196,7 +196,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
                 Parkour parkour = null;
                 for (Parkour pk : parkours) {
-                    if (pk.getName().equals(name)) {
+                    if (pk.getName().equalsIgnoreCase(name)) {
                         parkour = pk;
                     }
                 }
@@ -220,7 +220,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                     lbListItemFormat = "§a%1$s. %2$s - %3$ss";
                 }
                 sender.sendMessage(String.format(lbHeaderFormat, parkour.getName()));
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < Math.min(10, parkour.getLeaderboard().size()); i++) {
                     Pair<UUID, Float> data = parkour.getLeaderboard().get(i);
                     sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
                 }
