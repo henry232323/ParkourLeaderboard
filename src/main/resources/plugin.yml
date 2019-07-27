@@ -21,7 +21,7 @@ permissions:
 commands:
    parkour:
      description: View the leaderboard for a parkour
-     aliases: [pleaderboard]
+     aliases: []
      permission: parkour.leaderboard
      usage: "§cSyntax error! Usage: /parkour <name>"
    preload:
