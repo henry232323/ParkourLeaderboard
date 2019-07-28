@@ -44,3 +44,4 @@ $RECYCLE.BIN/
 server/
 .idea/
 target/
+.DS_STORE

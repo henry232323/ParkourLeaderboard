@@ -56,7 +56,7 @@ public class Parkour implements Serializable {
                 parkourFile
         );
         if (!leaderboardConf.getKeys(false).contains("leaderboard")) {
-            leaderboardConf.set("leaderboard", new HashMap<String, ArrayList<String>>());
+            leaderboardConf.set("leaderboard", new HashMap<String, Float>());
         }
         try {
             leaderboardConf.save(parkourFile);
@@ -70,9 +70,8 @@ public class Parkour implements Serializable {
 
         ConfigurationSection cs = leaderboardConf.getConfigurationSection("leaderboard");
         for (String key : cs.getKeys(false)) {
-            for (String item : cs.getStringList(key)) {
-                leaderboard.add(new Pair<>(UUID.fromString(key), Float.valueOf(item)));
-            }
+            String item = cs.getString(key);
+            leaderboard.add(new Pair<>(UUID.fromString(key), Float.valueOf(item)));
         }
     }
 
@@ -163,24 +162,11 @@ public class Parkour implements Serializable {
         String uuid = player.getUniqueId().toString();
         try {
             ConfigurationSection cs = leaderboardConf.getConfigurationSection("leaderboard");
-            if (!cs.getKeys(false).contains(uuid)) {
-                cs.set(uuid, new ArrayList<String>());
+            String time = cs.getString(uuid);
+            if (time == null || ftime < Float.valueOf(time)) {
+                cs.set(uuid, ftime);
             }
-            List<String> times = cs.getStringList(uuid);
-            times.add(String.valueOf(ftime));
-            cs.set(uuid, times);
 
-            for (int i = 10; i < leaderboard.size(); i++) {
-                Pair<UUID, Float> item = leaderboard.get(i);
-                String iuuid = item.getKey().toString();
-                List<String> itimes = cs.getStringList(iuuid);
-                String time = item.getValue().toString();
-                if (itimes.indexOf(time) != -1) {
-                    itimes.remove(time);
-                }
-
-                cs.set(iuuid, itimes);
-            }
 
             leaderboardConf.save(new File(plugin.getDataFolder().getAbsoluteFile(), "leaderboards" + File.separator + name + ".yml"));
         } catch (Exception e) {

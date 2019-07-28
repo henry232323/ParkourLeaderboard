@@ -1,7 +1,6 @@
 package henry232323.parkourleaderboard;
 
 import com.destroystokyo.paper.MaterialSetTag;
-import javafx.util.Pair;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
