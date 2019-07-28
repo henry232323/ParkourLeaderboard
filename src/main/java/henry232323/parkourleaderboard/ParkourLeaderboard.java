@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 
+
 /*
 TODO:
     Leaderboard using side scoreboard
@@ -31,7 +32,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
     private static Logger log;
 
     public ArrayList<Parkour> parkours;
-    ParkourListener parkourListener;
+    private ParkourListener parkourListener;
     File parkourDir;
     boolean hologramsEnabled = true;
 
@@ -220,9 +221,19 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                     lbListItemFormat = "§a%1$s. %2$s - %3$ss";
                 }
                 sender.sendMessage(String.format(lbHeaderFormat, parkour.getName()));
-                for (int i = 0; i < Math.min(10, parkour.getLeaderboard().size()); i++) {
+                int count = 0;
+                ArrayList<UUID> runners = new ArrayList<>();
+                for (int i = 0; i < parkour.getLeaderboard().size(); i++) {
                     Pair<UUID, Float> data = parkour.getLeaderboard().get(i);
-                    sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
+                    if (count >= 10) {
+                        break;
+                    }
+                    if (!runners.contains(data.getKey())) {
+                        sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
+                        runners.add(data.getKey());
+                        count++;
+                    }
+
                 }
                 return true;
             } catch (Exception e) {
