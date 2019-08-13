@@ -11,6 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,7 +35,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
     public ArrayList<Parkour> parkours;
     private ParkourListener parkourListener;
     File parkourDir;
-    boolean hologramsEnabled = true;
+    private boolean hologramsEnabled = true;
 
     FileConfiguration config;
 
@@ -187,8 +188,8 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("parkour")) {
-            try {
+        try {
+            if (command.getName().equalsIgnoreCase("parkour")) {
                 String name = args[0];
                 if (args.length > 1) {
                     return false;
@@ -206,8 +207,8 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                     errorMessage = ChatColor.RED + "[Parkour] That is not a valid parkour!";
                 }
 
-                if (parkour == null) {
-                    sender.sendMessage(errorMessage);
+                if (parkour == null & !errorMessage.equals("")) {
+                    sender.sendMessage(errorMessage.split("\n"));
                     return true;
                 }
 
@@ -220,7 +221,7 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                 if (lbListItemFormat == null) {
                     lbListItemFormat = "§a%1$s. %2$s - %3$ss";
                 }
-                sender.sendMessage(String.format(lbHeaderFormat, parkour.getName()));
+                sender.sendMessage(String.format(lbHeaderFormat, parkour.getName()).split("\n"));
                 int count = 0;
                 ArrayList<UUID> runners = new ArrayList<>();
                 for (int i = 0; i < parkour.getLeaderboard().size(); i++) {
@@ -229,45 +230,164 @@ public class ParkourLeaderboard extends JavaPlugin implements CommandExecutor {
                         break;
                     }
                     if (!runners.contains(data.getKey())) {
-                        sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()));
+                        sender.sendMessage(String.format(lbListItemFormat, i + 1, getServer().getOfflinePlayer(data.getKey()).getName(), data.getValue()).split("\n"));
                         runners.add(data.getKey());
                         count++;
                     }
 
                 }
                 return true;
-            } catch (Exception e) {
-                return false;
-            }
-        } else if (command.getName().equalsIgnoreCase("preload")) {
-            for (Parkour parkour : parkours) {
-                for (Hologram hologram : parkour.getHolograms()) {
-                    hologram.delete();
+            } else if (command.getName().equalsIgnoreCase("preload")) {
+                for (Parkour parkour : parkours) {
+                    for (Hologram hologram : parkour.getHolograms()) {
+                        hologram.delete();
+                    }
+
+                    for (Location checkpoint : parkour.getCheckpoints()) {
+                        checkpoint.getBlock().removeMetadata("parkour", this);
+                    }
+
+                    parkour.getStart().getBlock().removeMetadata("parkour", this);
+                    parkour.getEnd().getBlock().removeMetadata("parkour", this);
+                }
+                parkours = new ArrayList<>();
+
+                reloadConfig();
+                config = getConfig();
+                loadParkours();
+                sender.sendMessage("Reloaded config");
+                return true;
+            } else if (command.getName().equalsIgnoreCase("startparkour")) {
+                String playerName = args[0];
+                String parkourName = args[1];
+
+                Parkour parkour = null;
+                for (Parkour pk : parkours) {
+                    if (pk.getName().equalsIgnoreCase(parkourName)) {
+                        parkour = pk;
+                    }
+                }
+                String errorMessage = config.getString("name_error");
+                if (errorMessage == null) {
+                    errorMessage = ChatColor.RED + "[Parkour] That is not a valid parkour!";
                 }
 
-                for (Location checkpoint : parkour.getCheckpoints()) {
-                    checkpoint.getBlock().removeMetadata("parkour", this);
+                if (parkour == null & !errorMessage.equals("")) {
+                    sender.sendMessage(errorMessage.split("\n"));
+                    return true;
                 }
 
-                parkour.getStart().getBlock().removeMetadata("parkour", this);
-                parkour.getEnd().getBlock().removeMetadata("parkour", this);
-            }
-            parkours = new ArrayList<>();
+                Player player = getServer().getPlayer(playerName);
 
-            reloadConfig();
-            config = getConfig();
-            loadParkours();
-            sender.sendMessage("Reloaded config");
-            return true;
+                if (player == null) {
+                    sender.sendMessage(ChatColor.RED + "Error: " + ChatColor.DARK_RED + "Player not found.");
+                }
+
+                parkour.start(player);
+                return true;
+            }
+            if (command.getName().equalsIgnoreCase("endparkour")) {
+                String playerName = args[0];
+                String parkourName = args[1];
+
+                Parkour parkour = null;
+                for (Parkour pk : parkours) {
+                    if (pk.getName().equalsIgnoreCase(parkourName)) {
+                        parkour = pk;
+                    }
+                }
+                String errorMessage = config.getString("name_error");
+                if (errorMessage == null) {
+                    errorMessage = ChatColor.RED + "[Parkour] That is not a valid parkour!";
+                }
+
+                if (parkour == null & !errorMessage.equals("")) {
+                    sender.sendMessage(errorMessage.split("\n"));
+                    return true;
+                }
+
+                Player player = getServer().getPlayer(playerName);
+
+                if (player == null) {
+                    sender.sendMessage(ChatColor.RED + "Error: " + ChatColor.DARK_RED + "Player not found.");
+                }
+
+                if (parkour.currentlyRunning(player))
+                    parkour.end(player);
+                return true;
+            }
+            if (command.getName().equalsIgnoreCase("checkpoint")) {
+                String playerName = args[0];
+                String parkourName = args[1];
+
+                Parkour parkour = null;
+                for (Parkour pk : parkours) {
+                    if (pk.getName().equalsIgnoreCase(parkourName)) {
+                        parkour = pk;
+                    }
+                }
+                String errorMessage = config.getString("name_error");
+                if (errorMessage == null) {
+                    errorMessage = ChatColor.RED + "[Parkour] That is not a valid parkour!";
+                }
+
+                if (parkour == null & !errorMessage.equals("")) {
+                    sender.sendMessage(errorMessage.split("\n"));
+                    return true;
+                }
+
+                Player player = getServer().getPlayer(playerName);
+
+                if (player == null) {
+                    sender.sendMessage(ChatColor.RED + "Error: " + ChatColor.DARK_RED + "Player not found.");
+                }
+
+                if (parkour.currentlyRunning(player)) {
+                    parkour.checkPoint(player, null);
+                }
+                return true;
+            }
+            return false;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        ArrayList<String> names = new ArrayList<>();
-        for (Parkour parkour : parkours) {
-            names.add(parkour.getName());
+        try {
+            if (command.getName().equalsIgnoreCase("parkour")) {
+                ArrayList<String> names = new ArrayList<>();
+                for (Parkour parkour : parkours) {
+                    names.add(parkour.getName());
+                }
+                return names;
+
+            } else if (command.getName().equalsIgnoreCase("startparkour") ||
+                    command.getName().equalsIgnoreCase("endparkour") ||
+                    command.getName().equalsIgnoreCase("checkpoint")) {
+                if (args.length == 1) {
+                    return null;
+                    /*
+                    ArrayList<String> playerNames = new ArrayList<>();
+                    for (Player player : getServer().getOnlinePlayers()) {
+                        playerNames.add(player.getName());
+                    }
+                    return playerNames
+                            */
+                } else {
+                    ArrayList<String> names = new ArrayList<>();
+                    for (Parkour parkour : parkours) {
+                        names.add(parkour.getName());
+                    }
+                    return names;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return names;
     }
 }
