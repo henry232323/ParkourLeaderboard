@@ -10,13 +10,24 @@ permissions:
     description: All permissions for parkour
     children:
       parkour.leaderboard: true
-      parkour.reload: true
+      parkour.forcestart: true
+      parkour.forcestop: true
+      parkour.forcecheckpoint: true
   parkour.leaderboard:
     description: Gives access to viewing the leaderboard
     default: true
   parkour.reload:
-      description: Gives access to reloading the plugin
-      default: op
+    description: Gives access to reloading the plugin
+    default: op
+  parkour.forcestart:
+    description: Permission for /startparkour
+    default: op
+  parkour.forceend:
+    description: Permission for /endparkour
+    default: op
+  parkour.forcecheckpoint:
+    description: Permission for /checkpoint
+    default: op
 
 commands:
    parkour:
@@ -28,3 +39,15 @@ commands:
      description: Reload the parkour plugin
      permission: parkour.reload
      usage: "§cSyntax error! Usage: /preload"
+   startparkour:
+     description: Force a player to start a parkour
+     permission: parkour.forcestart
+     usage: "§cSyntax error! Usage: /startparkour <player> <parkour>"
+   endparkour:
+     description: Force a player to end a parkour
+     permission: parkour.forceend
+     usage: "§cSyntax error! Usage: /endparkour <player> <parkour>"
+   checkpoint:
+     description: Force a player to checkpoint a parkour
+     permission: parkour.forcecheckpoint
+     usage: "§cSyntax error! Usage: /checkpoint <player> <parkour>"

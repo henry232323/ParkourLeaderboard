@@ -71,7 +71,7 @@ public class Parkour implements Serializable {
         ConfigurationSection cs = leaderboardConf.getConfigurationSection("leaderboard");
         for (String key : cs.getKeys(false)) {
             String item = cs.getString(key);
-            leaderboard.add(new Pair<>(UUID.fromString(key), Float.valueOf(item)));
+            leaderboard.add(new Pair<>(UUID.fromString(key), Float.parseFloat(item)));
         }
     }
 
@@ -86,12 +86,14 @@ public class Parkour implements Serializable {
     public void start(Player player) {
         long stime = System.currentTimeMillis();
         current.put(player, stime);
-        String startMessage = plugin.config.getString("start_message");
+        String startMessage = plugin.config.getConfigurationSection("parkours." + name)
+                                           .getString("start_message");
         if (startMessage == null) {
             startMessage = ChatColor.BLUE + "[Parkour] Starting run.";
         }
-
-        player.sendMessage(startMessage);
+        if (!startMessage.equals("")) {
+            player.sendMessage(startMessage.split("\n"));
+        }
     }
 
     public void end(Player player) {
@@ -115,17 +117,17 @@ public class Parkour implements Serializable {
             }
         }
 
-        String endMessage = plugin.config.getString("end_message");
+        String endMessage = plugin.config.getConfigurationSection("parkours." + name).getString("end_message");
         if (endMessage == null) {
             endMessage = ChatColor.GREEN + "[Parkour] Your time was %1$ss.";
         }
 
-        String endWithBest = plugin.config.getString("end_with_best");
+        String endWithBest = plugin.config.getConfigurationSection("parkours." + name).getString("end_with_best");
         if (endWithBest == null) {
             endWithBest = ChatColor.GREEN + "[Parkour] Your time was %1$ss. Your best time is %2$ss.";
         }
 
-        String endWithRecord = plugin.config.getString("end_with_record");
+        String endWithRecord = plugin.config.getConfigurationSection("parkours." + name).getString("end_with_record");
         if (endWithRecord == null) {
             endWithRecord = ChatColor.GREEN + "[Parkour] Your time was %1$ss. Your best time is %2$ss. New record!";
         }
@@ -138,32 +140,44 @@ public class Parkour implements Serializable {
             message = String.format(endMessage, ftime);
         }
 
-        player.sendMessage(message);
+        if (!message.equals("")) {
+            player.sendMessage(message.split("\n"));
+        }
         for (String part : successCommand.split("\n")) {
             plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), String.format(part, player.getName()));
         }
 
         if (leaderboard.get(0) == cscore) {
-            String newRecordAnnounce = plugin.config.getString("new_record_announce");
+            String newRecordAnnounce = plugin.config.getConfigurationSection("parkours." + name).getString("new_record_announce");
             if (newRecordAnnounce == null) {
                 newRecordAnnounce = ChatColor.DARK_BLUE + "[Parkour] %1$s §9has set a new record of %3$ss for parkour %2$s!";
             }
 
-            plugin.getServer().broadcastMessage(String.format(newRecordAnnounce, player.getName(), ftime, name));
+            if (!newRecordAnnounce.equals("")) {
+                String nmessage = String.format(newRecordAnnounce, player.getName(), ftime, name);
+                for (String s : nmessage.split("\n")) {
+                    plugin.getServer().broadcastMessage(s);
+                }
+            }
         } else {
-            String runCompleteAnnounce = plugin.config.getString("run_complete_announce");
+            String runCompleteAnnounce = plugin.config.getConfigurationSection("parkour." + name).getString("run_complete_announce");
             if (runCompleteAnnounce == null) {
                 runCompleteAnnounce = "§1[Parkour] %1$s §9has has completed %3$s in %2$ss!";
             }
 
-            plugin.getServer().broadcastMessage(String.format(runCompleteAnnounce, player.getName(), ftime, name));
+            if (!runCompleteAnnounce.equals("")) {
+                String nmessage = String.format(runCompleteAnnounce, player.getName(), ftime, name);
+                for (String s : nmessage.split("\n")) {
+                    plugin.getServer().broadcastMessage(s);
+                }
+            }
         }
 
         String uuid = player.getUniqueId().toString();
         try {
             ConfigurationSection cs = leaderboardConf.getConfigurationSection("leaderboard");
             String time = cs.getString(uuid);
-            if (time == null || ftime < Float.valueOf(time)) {
+            if (time == null || ftime < Float.parseFloat(time)) {
                 cs.set(uuid, ftime);
             }
 
@@ -180,11 +194,13 @@ public class Parkour implements Serializable {
 
         float ftime = Float.parseFloat(new DecimalFormat("###.###").format(etime - stime)) / 1000;
 
-        String checkpointMessage = plugin.config.getString("checkpoint_message");
+        String checkpointMessage = plugin.config.getConfigurationSection("parkours." + name).getString("checkpoint_message");
         if (checkpointMessage == null) {
             checkpointMessage = "§9[Parkour] Checkpoint: %1$ss";
         }
-        player.sendMessage(String.format(checkpointMessage, ftime));
+        if (!checkpointMessage.equals("")) {
+            player.sendMessage(String.format(checkpointMessage, ftime).split("\n"));
+        }
 
     }
 
